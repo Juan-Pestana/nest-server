@@ -33,11 +33,10 @@ export class UsersService {
     }
   }
 
-  async findByEmail(username: string): Promise<User> {
+  async findByEmail(username: string): Promise<User | undefined> {
     const user = await this.userRepository.find({
       where: { username: username },
     });
-    console.log('on service', user);
 
     return user[0];
   }
