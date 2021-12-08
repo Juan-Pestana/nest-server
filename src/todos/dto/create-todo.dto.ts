@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsAlphanumeric, MaxLength } from 'class-validator';
+import { MaxLength } from 'class-validator';
+import { User } from 'src/users/entities/user.entity';
 
 export class CreateTodoDto {
   @ApiProperty()
-  @IsAlphanumeric()
   @MaxLength(30)
   title: string;
 
@@ -12,4 +12,7 @@ export class CreateTodoDto {
 
   @ApiProperty()
   status: boolean;
+
+  @ApiProperty()
+  ownerId: number;
 }

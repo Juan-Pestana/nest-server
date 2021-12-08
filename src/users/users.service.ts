@@ -1,33 +1,60 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    { id: 0, name: 'Juan', age: 39, married: true },
-    { id: 1, name: 'Blanca', age: 37, married: true },
-    { id: 2, name: 'Carlos', age: 35, married: false },
-    { id: 3, name: 'Victor', age: 33, married: false },
-  ];
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+  ) {}
 
-  findAll(name?: string): User[] {
+  async findAll(name?: string): Promise<User[]> {
     if (name) {
-      return this.users.filter((user) => user.name === name);
-    } else {
-      return this.users;
+      const usersByName = await this.userRepository
+        .createQueryBuilder('user')
+        .where('user.name = :name', { name: name })
+        .getMany();
+      return usersByName;
+    }
+    return this.userRepository.find({
+      relations: ['todos'],
+    });
+  }
+
+  async findById(id: number): Promise<User> {
+    try {
+      const user = await this.userRepository.findOneOrFail(id);
+      return user;
+    } catch (error) {
+      throw error;
     }
   }
 
-  findById(id: number): User {
-    return this.users.find((user) => user.id === id);
+  async findByEmail(username: string): Promise<User> {
+    const user = await this.userRepository.find({
+      where: { username: username },
+    });
+    console.log('on service', user);
+
+    return user[0];
   }
-  createUser(user: CreateUserDto): User {
-    const newUser = {
-      id: Date.now(),
-      ...user,
-    };
-    this.users.push(newUser);
-    return newUser;
+
+  createUser(user: CreateUserDto): Promise<User> {
+    const newUser = this.userRepository.create(user);
+    return this.userRepository.save(newUser);
+  }
+
+  async updateUser(id: number, user: UpdateUserDto): Promise<User> {
+    const userToUpdate = await this.findById(id);
+    const updatedUser = { ...userToUpdate, ...user };
+    return this.userRepository.save(updatedUser);
+  }
+
+  async deleteUser(id: number): Promise<User> {
+    const userTodelete = await this.findById(id);
+    return this.userRepository.remove(userTodelete);
   }
 }

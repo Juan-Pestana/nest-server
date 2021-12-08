@@ -28,9 +28,10 @@ export class TodosController {
 
   @ApiOkResponse({ type: [Todo] })
   @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'owner', required: false })
   @Get()
-  findAll(@Query('status') status: string) {
-    return this.todosService.findAll(status);
+  findAll(@Query('status') status: string, @Query('owner') owner: string) {
+    return this.todosService.findAll(status, +owner);
   }
 
   @ApiOkResponse({ type: Todo })
@@ -54,12 +55,12 @@ export class TodosController {
       throw new NotFoundException();
     }
 
-    return;
+    return updated;
   }
 
   @ApiOkResponse({ type: Todo })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.todosService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.todosService.remove(id);
   }
 }
